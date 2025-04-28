@@ -778,6 +778,9 @@ def request_params_to_args(
                     if field.alias != field.name
                     else field.name.replace("_", "-")
                 )
+        # Always use the field's alias for query parameters
+        elif field.alias != field.name:
+            alias = field.alias
         value = _get_multidict_value(field, received_params, alias=alias)
         if value is not None:
             params_to_process[field.name] = value
@@ -800,7 +803,23 @@ def request_params_to_args(
         return {first_field.name: v_}, errors_
 
     for field in fields:
-        value = _get_multidict_value(field, received_params)
+        alias = None
+        if isinstance(received_params, Headers):
+            # Handle fields extracted from a Pydantic Model for a header, each field
+            # doesn't have a FieldInfo of type Header with the default convert_underscores=True
+            convert_underscores = getattr(
+                field.field_info, "convert_underscores", True
+            )
+            if convert_underscores:
+                alias = (
+                    field.alias
+                    if field.alias != field.name
+                    else field.name.replace("_", "-")
+                )
+        # Always use the field's alias for query parameters
+        elif field.alias != field.name:
+            alias = field.alias
+        value = _get_multidict_value(field, received_params, alias=alias)
         field_info = field.field_info
         assert isinstance(field_info, params.Param), (
             "Params must be subclasses of Param"
