@@ -49,6 +49,7 @@ validation_error_definition = {
         },
         "msg": {"title": "Message", "type": "string"},
         "type": {"title": "Error Type", "type": "string"},
+        "input": {"title": "Input", "type": "string"},
     },
     "required": ["loc", "msg", "type"],
 }
